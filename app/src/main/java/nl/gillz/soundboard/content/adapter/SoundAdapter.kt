@@ -2,6 +2,7 @@ package nl.gillz.soundboard.content.adapter
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +12,17 @@ import nl.gillz.soundboard.R
 import nl.gillz.soundboard.model.SoundItem
 import android.widget.Filter
 import android.widget.Filterable
+import nl.gillz.soundboard.ui.view.FavoriteButton
 import java.util.*
+import io.realm.Realm
+import io.realm.kotlin.createObject
+import io.realm.kotlin.where
+import nl.gillz.soundboard.model.SoundFavorite
+import nl.gillz.soundboard.util.SoundFavoriteInterface
+
 
 class SoundAdapter(context: Context,
+                   var soundFavoriteInterface: SoundFavoriteInterface,
                    var dataSource: ArrayList<SoundItem>) : BaseAdapter(), Filterable {
 
     var filterList: ArrayList<SoundItem> = dataSource
@@ -46,10 +55,49 @@ class SoundAdapter(context: Context,
             view = inflater.inflate(R.layout.list_item_sound, parent, false)
             val titleTextView = view.findViewById(R.id.text_view_title) as TextView
             val lengthTextView = view.findViewById(R.id.text_view_length) as TextView
+            val favoriteButton = view.findViewById(R.id.favorite_button) as FavoriteButton
             titleTextView.text = soundItem.title
             lengthTextView.text = "${soundItem.length} seconds"
-        }
+            favoriteButton.setActive(soundItem.isFavorite)
 
+            // Set OnClick listener
+            favoriteButton.setOnClickListener({
+
+                // Open realm
+                val realm: Realm = Realm.getDefaultInstance()
+                val results = realm.where<SoundFavorite>().equalTo("soundFilePath", soundItem.file.absolutePath).findAll()
+
+                if(favoriteButton.isActive()){
+                    favoriteButton.setActive(false)
+
+                    // Call Interface
+                    soundFavoriteInterface.onSoundFileFavoriteUpdate(soundItem.file.absolutePath, false)
+
+                    // remove from db
+                    realm.executeTransaction {
+                        // Delete all matches
+                        results.deleteAllFromRealm()
+                    }
+                } else {
+                    favoriteButton.setActive(true)
+
+                    // Call Interface
+                    soundFavoriteInterface.onSoundFileFavoriteUpdate(soundItem.file.absolutePath, true)
+
+                    // add to db
+                    if(results.size == 0){
+                        realm.executeTransaction { realm ->
+                            // Add a favorite
+                            val soundFavorite = realm.createObject<SoundFavorite>()
+                            soundFavorite.soundFilePath = soundItem.file.absolutePath
+                        }
+                    }
+                }
+
+                // Close realm
+                realm.close()
+            })
+        }
         return view
     }
 
@@ -89,8 +137,6 @@ class SoundAdapter(context: Context,
             }
 
             override fun publishResults(constraint: CharSequence, results: Filter.FilterResults) {
-                // TODO Auto-generated method stub
-
                 dataSource = results.values as ArrayList<SoundItem>
                 notifyDataSetChanged()
             }
