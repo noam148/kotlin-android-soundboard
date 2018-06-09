@@ -16,7 +16,6 @@ import nl.gillz.soundboard.util.SoundList
 import java.io.File
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import nl.gillz.soundboard.model.SoundItem
 import nl.gillz.soundboard.util.SoundFavoriteInterface
 
@@ -72,7 +71,6 @@ class MainActivity : AppCompatActivity(), SoundFavoriteInterface {
      * If sound file is updated
      */
     override fun onSoundFileFavoriteUpdate(soundFilePath: String, isFavorite: Boolean) {
-        Log.d("upateje----", "-------: $soundFilePath--$isFavorite")
 
         // Index that need to remove
         var soundItemIndexRemove: Int = -1

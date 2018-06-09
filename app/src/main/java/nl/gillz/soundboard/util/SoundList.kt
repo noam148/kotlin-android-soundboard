@@ -6,10 +6,7 @@ import nl.gillz.soundboard.model.SoundItem
 import java.io.File
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.util.Log
 import io.realm.Realm
-import io.realm.RealmResults
-import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import nl.gillz.soundboard.model.SoundFavorite
 
