@@ -7,6 +7,7 @@ On the first run it's ask for WRITE_EXTERNAL_STORAGE permission. Accept the perm
 
 What can it do 
 ------------
+* Manage your own soundboard
 * Categorized soundboard
 * A search filter by filename
 * Add sounds as favorites. The sound will appear also in the top categorie "favorites"
