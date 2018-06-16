@@ -16,6 +16,7 @@ import nl.gillz.soundboard.util.SoundList
 import java.io.File
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import nl.gillz.soundboard.model.SoundItem
 import nl.gillz.soundboard.util.SoundFavoriteInterface
 
@@ -37,31 +38,7 @@ class MainActivity : AppCompatActivity(), SoundFavoriteInterface {
         editTextSearch = findViewById(R.id.edit_text_search)
         listViewSound = findViewById(R.id.list_view_sound)
 
-        soundItemList = SoundList(this).getSoundItems()
-        soundAdapter = SoundAdapter(this,this, soundItemList)
-        listViewSound.adapter = soundAdapter
-        listViewSound.isTextFilterEnabled = true
-
-        val context = this
-        listViewSound.setOnItemClickListener { _, _, position, _ ->
-            val selectedSound = soundAdapter.dataSource[position]
-
-            if (!selectedSound.isSection) {
-                audioPlayer(selectedSound.file)
-            }
-        }
-
-        // filter on text change
-        editTextSearch.addTextChangedListener(object : TextWatcher {
-
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                soundAdapter.filter.filter(s.toString())
-            }
-
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-
-            override fun afterTextChanged(s: Editable) {}
-        })
+        initSoundListView()
 
         mp = MediaPlayer()
         mp.setOnCompletionListener { mp -> mp.release() }
@@ -97,7 +74,7 @@ class MainActivity : AppCompatActivity(), SoundFavoriteInterface {
         // If is favorite add item under favorite section
         if(isFavorite){
             val soundItemFile = File(soundFilePath)
-            soundItemList.add(1,SoundItem(false, SoundList.getFileName(soundItemFile),SoundList.getDuration(soundItemFile, this), soundItemFile, true, true))
+            soundItemList.add(1,SoundItem(false, SoundList.getFileName(soundItemFile), soundItemFile, SoundList.getDuration(soundItemFile.absolutePath), true, true))
 
         // If remove index isset? remove item
         } else if(soundItemIndexRemove != -1){
@@ -134,11 +111,37 @@ class MainActivity : AppCompatActivity(), SoundFavoriteInterface {
         }
     }
 
-    fun audioPlayer(soundFile: File) {
-//        val mp1 = MediaPlayer.create(this, Uri.fromFile(soundFile))
-//        mp1.start()
-//        mp1.setOnCompletionListener(OnCompletionListener { mp -> mp.release() })
+    fun initSoundListView() {
 
+        soundItemList = SoundList(this).getSoundItems()
+
+        soundAdapter = SoundAdapter(this,this, soundItemList)
+        listViewSound.adapter = soundAdapter
+        listViewSound.isTextFilterEnabled = true
+
+        val context = this
+        listViewSound.setOnItemClickListener { _, _, position, _ ->
+            val selectedSound = soundAdapter.dataSource[position]
+
+            if (!selectedSound.isSection) {
+                audioPlayer(selectedSound.file)
+            }
+        }
+
+        // filter on text change
+        editTextSearch.addTextChangedListener(object : TextWatcher {
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                soundAdapter.filter.filter(s.toString())
+            }
+
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+
+            override fun afterTextChanged(s: Editable) {}
+        })
+    }
+
+    fun audioPlayer(soundFile: File) {
 
         if (mp.isPlaying) {
             mp.stop()

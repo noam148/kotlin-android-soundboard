@@ -2,7 +2,6 @@ package nl.gillz.soundboard.content.adapter
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,8 +19,7 @@ import io.realm.kotlin.where
 import nl.gillz.soundboard.model.SoundFavorite
 import nl.gillz.soundboard.util.SoundFavoriteInterface
 
-
-class SoundAdapter(context: Context,
+class SoundAdapter(private val context: Context,
                    var soundFavoriteInterface: SoundFavoriteInterface,
                    var dataSource: ArrayList<SoundItem>) : BaseAdapter(), Filterable {
 
@@ -57,11 +55,11 @@ class SoundAdapter(context: Context,
             val lengthTextView = view.findViewById(R.id.text_view_length) as TextView
             val favoriteButton = view.findViewById(R.id.favorite_button) as FavoriteButton
             titleTextView.text = soundItem.title
-            lengthTextView.text = "${soundItem.length} seconds"
+            lengthTextView.text = soundItem.duration.toString() + " seconds"
             favoriteButton.setActive(soundItem.isFavorite)
 
             // Set OnClick listener
-            favoriteButton.setOnClickListener({
+            favoriteButton.setOnClickListener {
 
                 // Open realm
                 val realm: Realm = Realm.getDefaultInstance()
@@ -96,7 +94,7 @@ class SoundAdapter(context: Context,
 
                 // Close realm
                 realm.close()
-            })
+            }
         }
         return view
     }
