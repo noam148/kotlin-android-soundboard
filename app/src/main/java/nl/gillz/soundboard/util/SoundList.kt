@@ -1,14 +1,17 @@
 package nl.gillz.soundboard.util
 
 import android.content.Context
-import android.os.Environment
-import nl.gillz.soundboard.model.SoundItem
-import java.io.File
 import android.media.MediaMetadataRetriever
+import android.os.Environment
+import android.util.Log
 import io.realm.Realm
+import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import nl.gillz.soundboard.content.data.SoundDurationSingleton
 import nl.gillz.soundboard.model.SoundDuration
 import nl.gillz.soundboard.model.SoundFavorite
+import nl.gillz.soundboard.model.SoundItem
+import java.io.File
 
 /**
  * Created by Noam on 16-5-2018.
@@ -20,22 +23,12 @@ class SoundList(private var context: Context) {
     private var fileSoundboardFolder: File
     private var realm: Realm = Realm.getDefaultInstance()
     private var soundFavoriteItem = ArrayList<String>()
-    private var soundDurationList: Array<*>
 
     init {
 
         // Get Duration items
-        soundDurationList = realm.where<SoundDuration>().findAll().toArray() as Array<*>
-
-//todo: remove test scripts
-
-       // val arrayListOfUnmanagedObjects = realm.copyFromRealm(soundDurationList)
-
-//        List<String, Int>(): test = ArrayList<String, Int>()
-//        val result = routeTypes
-//                .filter { it.type in filter.keys }
-//                .map { it.copy(items = it.items.filter { it.id in filter[routeType.type]!! }) }
-
+        val soundDurationResult = realm.where<SoundDuration>().findAll()
+        SoundDurationSingleton.INSTANCE.soundDurationList = realm.copyFromRealm(soundDurationResult)
 
         // Set soundboard path
         soundboardPath = "${Environment.getExternalStorageDirectory()}${File.separator}soundboard"
@@ -47,8 +40,8 @@ class SoundList(private var context: Context) {
         fileSoundboardFolder.mkdirs()
     }
 
-    companion object{
-        fun getFileName(soundFile: File): String{
+    companion object {
+        fun getFileName(soundFile: File): String {
 
             // Get filename
             var fileName = soundFile.name
@@ -61,18 +54,38 @@ class SoundList(private var context: Context) {
             return fileName
         }
 
-        fun getDuration(soundFilePath: String): Int{
+        fun getDuration(soundFilePath: String): Int {
             var seconds = 0
 
-            //todo: set in async or somting like that store data to table
-            val mmr = MediaMetadataRetriever()
-            mmr.setDataSource(soundFilePath)
-            val durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            val millSecond = Integer.parseInt(durationStr)
-            seconds = (millSecond/1000)
-            mmr.release()
+            val soundDurationListFiltered = SoundDurationSingleton.INSTANCE.soundDurationList.filter { it.soundFilePath in soundFilePath }
+            SoundDurationSingleton.INSTANCE.counter++
 
-            if(seconds == 0){
+            // Check record exists. If exists get from database else get from file and store to db
+            if (soundDurationListFiltered.isNotEmpty()) {
+                seconds = soundDurationListFiltered[0].soundDuration;
+            } else {
+
+                // Get time and add to db
+                val mmr = MediaMetadataRetriever()
+                mmr.setDataSource(soundFilePath)
+                val durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                val millSecond = Integer.parseInt(durationStr)
+                seconds = (millSecond / 1000)
+                mmr.release()
+
+                // Add data to realm db
+                var realm: Realm = Realm.getDefaultInstance()
+                realm.executeTransaction { realm ->
+
+                    // Add a duration
+                    val soundDuration = realm.createObject<SoundDuration>()
+                    soundDuration.soundFilePath = soundFilePath
+                    soundDuration.soundDuration = seconds
+                }
+                realm.close()
+            }
+
+            if (seconds == 0) {
                 seconds = 1
             }
             return seconds
@@ -95,20 +108,8 @@ class SoundList(private var context: Context) {
             // Create a file
             val soundFile = File(soundFavorite.soundFilePath)
 
-//todo: add duration to db if not exists
-//            realm.executeTransaction { realm ->
-//                soundDurationList.filter
-//                if (soundDurationList.filtered("seasonNumber == $0", season.seasonNumber).length == 0) {
-//                    seasonsList.push(season)
-//                }
-//
-//                // Add a favorite
-//                val soundFavorite = realm.createObject<SoundFavorite>()
-//                soundFavorite.soundFilePath = soundItem.file.absolutePath
-//            }
-
             // Check file exists
-            if(soundFile.exists()){
+            if (soundFile.exists()) {
                 soundItemList.add(SoundItem(false, getFileName(soundFile), soundFile, getDuration(soundFile.absolutePath), true, true))
 
                 // Add to List array
@@ -119,8 +120,8 @@ class SoundList(private var context: Context) {
         // Read folders
         fileSoundboardFolder.walkTopDown().forEach {
 
-            if (it.isFile){
-                soundItemList.add(SoundItem(false, getFileName(it), it, getDuration(it.absolutePath), soundFavoriteItem.contains(it.absolutePath),false))
+            if (it.isFile) {
+                soundItemList.add(SoundItem(false, getFileName(it), it, getDuration(it.absolutePath), soundFavoriteItem.contains(it.absolutePath), false))
             } else if (fileSoundboardFolder.absolutePath != it.absolutePath) {
                 soundItemList.add(SoundItem(true, it.name, it, 0, false, false))
             }
