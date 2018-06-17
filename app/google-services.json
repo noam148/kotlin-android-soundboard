@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "449146192475",
+    "firebase_url": "https://soundboard-n148.firebaseio.com",
+    "project_id": "soundboard-n148",
+    "storage_bucket": "soundboard-n148.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:449146192475:android:2f659f5fcfd3df67",
+        "android_client_info": {
+          "package_name": "nl.gillz.soundboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "449146192475-u5kgk337tv281bto1qh0eqnbuouneqt7.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "449146192475-u5kgk337tv281bto1qh0eqnbuouneqt7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAezzN3_JJAC7n6SYKlHsi8JPA7_NPrICk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

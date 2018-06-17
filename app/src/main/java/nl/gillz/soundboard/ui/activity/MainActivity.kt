@@ -17,6 +17,7 @@ import java.io.File
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import com.crashlytics.android.Crashlytics
 import nl.gillz.soundboard.model.SoundItem
 import nl.gillz.soundboard.util.SoundFavoriteInterface
 

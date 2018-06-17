@@ -8,6 +8,10 @@ package nl.gillz.soundboard
 import android.app.Application
 
 import io.realm.Realm
+import io.fabric.sdk.android.Fabric
+import com.crashlytics.android.Crashlytics
+
+
 
 class Application : Application() {
 
@@ -15,5 +19,11 @@ class Application : Application() {
         super.onCreate()
         // Initialize Realm. Should only be done once when the application starts.
         Realm.init(this)
+
+        val fabric = Fabric.Builder(this)
+                .kits(Crashlytics())
+                .debuggable(true)           // Enables Crashlytics debugger
+                .build()
+        Fabric.with(fabric)
     }
 }
